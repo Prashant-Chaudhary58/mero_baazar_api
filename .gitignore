@@ -1,51 +1,42 @@
-# Miscellaneous
-*.log
-*.tmp   
-.DS_Store
-*.swp
-Thumbs.db
-# Node modules
+# Dependencies
 node_modules/
-# Build output  
-dist/
-build/
-# Environment files
-.env
-.env.local
-.env.*.local
-# IDE files
-.vscode/    
-.idea/
-*.sublime-project
-*.sublime-workspace
-# OS generated files
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-# Dependency directories
-vendor/
-# Coverage directory
-coverage/
-# Test output
-test-output/
-# Lock files
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
+
+# Environment variables
+# .env
+# config/config.env
+
 # Logs
-logs/
-*.log   
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-# Temporary files
-tmp/
-temp/   
-# Compiled source #
-*.class
-*.dll
-*.exe
-*.obj
-*.obj
-*.so    
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+*~
+
+# Uploaded files (except defaults)
+public/profile_pictures/*
+!public/profile_pictures/default-profile.png
+public/item_photos/*
+!public/item_photos/default.jpg
+public/item_videos/*
+
+# Testing
+coverage/
+
+# Documentation (exclude internal notes)
+TEACHING_NOTES.md
+FINAL_REVIEW.md
+db_design.md
+API_TESTING.md
+
+# Misc
+*.log
