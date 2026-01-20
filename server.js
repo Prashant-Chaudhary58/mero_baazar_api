@@ -17,11 +17,18 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
+
+app.use(cors({
+  origin: 'http://localhost:3000',     
+  credentials: true,                   
+}));
+
+
+// app.use(cors());   //used for development
 
 // Routes
 const authRoutes = require("./routes/auth_route");
