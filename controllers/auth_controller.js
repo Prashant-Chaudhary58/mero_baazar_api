@@ -31,21 +31,27 @@ exports.login = async (req, res, next) => {
 
     // Validate email & password
     if (!phone || !password) {
-      return res.status(400).json({ success: false, error: "Please provide phone and password" });
+      return res
+        .status(400)
+        .json({ success: false, error: "Please provide phone and password" });
     }
 
     // Check for user
     const user = await User.findOne({ phone }).select("+password");
 
     if (!user) {
-      return res.status(401).json({ success: false, error: "Invalid credentials" });
+      return res
+        .status(401)
+        .json({ success: false, error: "Invalid credentials" });
     }
 
     // Check if password matches
     const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
-      return res.status(401).json({ success: false, error: "Invalid credentials" });
+      return res
+        .status(401)
+        .json({ success: false, error: "Invalid credentials" });
     }
 
     sendTokenResponse(user, 200, res);
@@ -61,7 +67,7 @@ const sendTokenResponse = (user, statusCode, res) => {
 
   const options = {
     expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000
+      Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000,
     ),
     httpOnly: true,
   };
@@ -70,12 +76,14 @@ const sendTokenResponse = (user, statusCode, res) => {
     options.secure = true;
   }
 
-  res
-    .status(statusCode)
-    .cookie("token", token, options)
-    .json({
-      success: true,
-      token,
-      data: user,
-    });
+  res.status(statusCode).cookie("token", token, options).json({
+    success: true,
+    token,
+    data: user,
+  });
+
+  exports.logout = (req, res) => {
+    res.cookie("token", "", { httpOnly: true, expires: new Date(0) });
+    res.status(200).json({ success: true });
+  };
 };
