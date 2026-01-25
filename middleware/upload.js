@@ -1,10 +1,34 @@
 const multer = require("multer");
 const path = require("path");
 
+const fs = require("fs");
+
 // Set storage engine
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "./public/uploads/");
+
+    let folder = "./public/uploads/";
+    
+    // Check if it's a product upload based on the route
+    if (req.originalUrl.includes('products')) {
+       folder += "products/";
+    } else if (req.body.role) {
+      if (req.body.role === 'seller') { 
+         folder += "farmer/";
+      } else {
+         folder += "buyer/";
+      }
+    } else {
+       // Fallback if role is missing or not parsed yet
+       folder += "others/";
+    }
+
+    // Create folder if not exists
+    if (!fs.existsSync(folder)){
+        fs.mkdirSync(folder, { recursive: true });
+    }
+
+    cb(null, folder);
   },
   filename: function (req, file, cb) {
     cb(
