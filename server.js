@@ -22,19 +22,43 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
+const allowedOrigins = [
+  'http://localhost:3000',         // Web frontend (Next.js)
+  'http://localhost:5001',         // If mobile uses localhost
+  'http://10.0.2.2:5001',          // Android emulator (points to host machine)
+  'http://127.0.0.1:5001',         // Another localhost variant
+  'http://172.18.118.197:5001',    // Your current Wi-Fi IP (from ipconfig)
+  // Add more if needed later (e.g., other IPs when hotspot changes)
+];
+
 app.use(cors({
-  origin: 'http://localhost:3000',     
-  credentials: true,                   
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile native apps, curl, Postman)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log(`CORS blocked origin: ${origin}`); // Helpful log for debugging
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,                 // Required for cookies
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 
 // app.use(cors());   //used for development
 
+const path = require("path");
+
 // Routes
 const authRoutes = require("./routes/auth_route");
 const productRoutes = require("./routes/product_route");
 
-app.use(express.static("public"));
+// Set static folder
+app.use(express.static(path.join(__dirname, "public")));
+// Explicitly serve uploads to be sure
+app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/products", productRoutes);
