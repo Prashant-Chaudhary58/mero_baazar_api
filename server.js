@@ -24,11 +24,11 @@ if (process.env.NODE_ENV === "development") {
 
 const allowedOrigins = [
   'http://localhost:3000',         // Web frontend (Next.js)
-  'http://localhost:5001',         // If mobile uses localhost
-  'http://10.0.2.2:5001',          // Android emulator (points to host machine)
-  'http://127.0.0.1:5001',         // Another localhost variant
-  'http://172.18.118.197:5001',    // Your current Wi-Fi IP (from ipconfig)
-  // Add more if needed later (e.g., other IPs when hotspot changes)
+  'http://localhost:5001',         
+  'http://10.0.2.2:5001',         
+  'http://127.0.0.1:5001',         
+  'http://172.30.111.197:5001',    //current Wi-Fi IP
+
 ];
 
 app.use(cors({
