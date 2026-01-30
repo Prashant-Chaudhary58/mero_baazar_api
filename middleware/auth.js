@@ -1,6 +1,5 @@
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("./async"); // I need to create async.js or just use try/catch
-const User = require("../models/user_model");
 
 exports.protect = async (req, res, next) => {
   let token;
@@ -27,7 +26,24 @@ exports.protect = async (req, res, next) => {
 
     console.log(decoded);
 
-    req.user = await User.findById(decoded.id);
+    const { Buyer, Farmer } = require("../models/user_model");
+
+    // If role is in token, use specific model
+    if (decoded.role) {
+      const Model = decoded.role === "seller" ? Farmer : Buyer;
+      req.user = await Model.findById(decoded.id);
+    } else {
+      // Fallback: Check both collections if role is missing (old tokens)
+      let user = await Buyer.findById(decoded.id);
+      if (!user) {
+        user = await Farmer.findById(decoded.id);
+      }
+      req.user = user;
+    }
+
+    if (!req.user) {
+      return res.status(401).json({ success: false, error: "Not authorized to access this route" });
+    }
 
     next();
   } catch (err) {

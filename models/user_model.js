@@ -27,10 +27,13 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: "no-photo.jpg",
   },
+  email: String,
+  dob: String,
   address: String,
   city: String,
   district: String,
   province: String,
+  altPhone: String,
   createdAt: {
     type: Date,
     default: Date.now,
@@ -49,7 +52,7 @@ UserSchema.pre("save", async function (next) {
 
 // Sign JWT and return
 UserSchema.methods.getSignedJwtToken = function () {
-  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id: this._id, role: this.role }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
 };
@@ -59,4 +62,8 @@ UserSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-module.exports = mongoose.model("User", UserSchema);
+// Create separate models for different collections
+const Buyer = mongoose.model("Buyer", UserSchema, "buyers");
+const Farmer = mongoose.model("Farmer", UserSchema, "farmers");
+
+module.exports = { Buyer, Farmer };
