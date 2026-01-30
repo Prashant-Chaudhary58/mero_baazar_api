@@ -30,7 +30,7 @@ const ProductSchema = new mongoose.Schema({
   },
   seller: {
     type: mongoose.Schema.ObjectId,
-    ref: "User",
+    ref: "Farmer",
     required: true,
   },
   createdAt: {

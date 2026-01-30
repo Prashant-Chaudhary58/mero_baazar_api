@@ -9,17 +9,20 @@ const storage = multer.diskStorage({
 
     let folder = "./public/uploads/";
     
+    // Check if it's a profile update (req.user exists because of protect middleware)
+    const role = req.user ? req.user.role : req.body.role;
+
     // Check if it's a product upload based on the route
     if (req.originalUrl.includes('products')) {
        folder += "products/";
-    } else if (req.body.role) {
-      if (req.body.role === 'seller') { 
+    } else if (role) {
+      if (role === 'seller') { 
          folder += "farmer/";
       } else {
          folder += "buyer/";
       }
     } else {
-       // Fallback if role is missing or not parsed yet
+       // Fallback if role is missing
        folder += "others/";
     }
 

@@ -1,4 +1,9 @@
-const User = require("../models/user_model");
+const { Buyer, Farmer } = require("../models/user_model");
+
+// Helper to get model based on role
+const getModelByRole = (role) => {
+  return role === "seller" ? Farmer : Buyer;
+};
 
 // @desc    Register user
 // @route   POST /api/v1/auth/register
@@ -8,12 +13,14 @@ exports.register = async (req, res, next) => {
     const { fullName, phone, password, role } = req.body;
     console.log("Register request received:", req.body);
 
+    const Model = getModelByRole(role);
+
     // Create user
-    const user = await User.create({
+    const user = await Model.create({
       fullName,
       phone,
       password,
-      role,
+      role: role || "buyer",
     });
 
     sendTokenResponse(user, 201, res);
@@ -29,15 +36,17 @@ exports.login = async (req, res, next) => {
   try {
     const { phone, password } = req.body;
 
-    // Validate email & password
     if (!phone || !password) {
       return res
         .status(400)
         .json({ success: false, error: "Please provide phone and password" });
     }
 
-    // Check for user
-    const user = await User.findOne({ phone }).select("+password");
+    // Check both collections
+    let user = await Buyer.findOne({ phone }).select("+password");
+    if (!user) {
+      user = await Farmer.findOne({ phone }).select("+password");
+    }
 
     if (!user) {
       return res
@@ -60,8 +69,6 @@ exports.login = async (req, res, next) => {
   }
 };
 
-
-
 // @desc    Logout user / clear cookie
 // @route   GET /api/v1/auth/logout
 // @access  Public
@@ -75,13 +82,8 @@ exports.logout = (req, res) => {
 // @access  Private
 exports.getMe = async (req, res) => {
   try {
-    // If auth middleware is working, req.user should be populated
-    // If using cookie parser without middleware, we might need to verify token here.
-    // Assuming middleware sets req.user.
-    
-    // For now, based on provided code, the middleware usage wasn't shown but likely exists.
-    // Ideally we fetch again to be safe.
-    const user = await User.findById(req.user.id);
+    const Model = getModelByRole(req.user.role);
+    const user = await Model.findById(req.user.id);
 
     res.status(200).json({
       success: true,
@@ -96,7 +98,7 @@ exports.getMe = async (req, res) => {
 };
 
 // @desc    Update user details
-// @route   PUT /api/v1/auth/updatedetails
+// @route   PUT /api/v1/auth/updatedetails/:id
 // @access  Private
 exports.updateDetails = async (req, res, next) => {
   try {
@@ -108,20 +110,17 @@ exports.updateDetails = async (req, res, next) => {
       district: req.body.district,
       city: req.body.city,
       address: req.body.address,
-      altPhone: req.body.altPhone
+      altPhone: req.body.altPhone,
     };
 
-    // Check if file uploaded
     if (req.file) {
-      // If we want to store the full URL:
-      // const url = req.protocol + '://' + req.get('host');
-      // fieldsToUpdate.image = url + '/public/uploads/' + req.file.filename; 
-      
-      // Or just relative path if frontend builds URL:
-      fieldsToUpdate.image = req.file.filename; 
+      fieldsToUpdate.image = req.file.filename;
     }
 
-    const user = await User.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
+    // We use the role from the token (req.user.role) to know which collection to update
+    const Model = getModelByRole(req.user.role);
+
+    const user = await Model.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
       new: true,
       runValidators: true,
     });
@@ -140,7 +139,6 @@ exports.updateDetails = async (req, res, next) => {
 
 // Get token from model, create cookie and send response
 const sendTokenResponse = (user, statusCode, res) => {
-  // Create token
   const token = user.getSignedJwtToken();
 
   const options = {

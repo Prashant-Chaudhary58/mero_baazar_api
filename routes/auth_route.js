@@ -9,6 +9,6 @@ router.post("/register", register);
 router.post("/login", login);
 router.get("/logout", logout);
 router.get("/me", protect, getMe);
-router.put("/update/:id", upload.single("image"), updateDetails);
+router.put("/update/:id", protect, upload.single("image"), updateDetails);
 
 module.exports = router;
