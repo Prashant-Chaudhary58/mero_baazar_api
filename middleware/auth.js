@@ -9,10 +9,8 @@ exports.protect = async (req, res, next) => {
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
   ) {
-    // Set token from Bearer token in header
     token = req.headers.authorization.split(" ")[1];
   } else if (req.cookies.token) {
-    // Set token from cookie
     token = req.cookies.token;
   }
 
@@ -24,13 +22,37 @@ exports.protect = async (req, res, next) => {
   try {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("Decoded Token:", decoded);
 
-    console.log(decoded);
+    // Check user based on role in token, or fallback to checking all
+    if (decoded.role === "buyer") {
+      const Buyer = require("../models/buyer_model");
+      req.user = await Buyer.findById(decoded.id);
+    } else if (decoded.role === "seller") {
+      const Farmer = require("../models/farmer_model");
+      req.user = await Farmer.findById(decoded.id);
+    } else {
+      // Default or Admin
+      req.user = await User.findById(decoded.id);
+      
+      // Fallback: If not found in User, try others (for old tokens without role)
+      if (!req.user) {
+         const Buyer = require("../models/buyer_model");
+         req.user = await Buyer.findById(decoded.id);
+      }
+      if (!req.user) {
+         const Farmer = require("../models/farmer_model");
+         req.user = await Farmer.findById(decoded.id);
+      }
+    }
 
-    req.user = await User.findById(decoded.id);
+    if (!req.user) {
+        return res.status(401).json({ success: false, error: "User not found" });
+    }
 
     next();
   } catch (err) {
+    console.error(err);
     return res.status(401).json({ success: false, error: "Not authorized to access this route" });
   }
 };

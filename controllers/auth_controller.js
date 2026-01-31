@@ -3,18 +3,41 @@ const User = require("../models/user_model");
 // @desc    Register user
 // @route   POST /api/v1/auth/register
 // @access  Public
+// @desc    Register user
+// @route   POST /api/v1/auth/register
+// @access  Public
 exports.register = async (req, res, next) => {
   try {
     const { fullName, phone, password, role } = req.body;
     console.log("Register request received:", req.body);
 
-    // Create user
-    const user = await User.create({
-      fullName,
-      phone,
-      password,
-      role,
-    });
+    let user;
+
+    if (role === "buyer") {
+      const Buyer = require("../models/buyer_model");
+      user = await Buyer.create({
+        fullName,
+        phone,
+        password,
+        role,
+      });
+    } else if (role === "seller") {
+      const Farmer = require("../models/farmer_model");
+      user = await Farmer.create({
+        fullName,
+        phone,
+        password,
+        role: "seller", // Ensure role is correctly set
+      });
+    } else {
+      // Default to User (or Admin if needed later)
+      user = await User.create({
+        fullName,
+        phone,
+        password,
+        role,
+      });
+    }
 
     sendTokenResponse(user, 201, res);
   } catch (err) {
