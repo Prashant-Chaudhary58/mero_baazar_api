@@ -36,8 +36,21 @@ exports.login = async (req, res, next) => {
         .json({ success: false, error: "Please provide phone and password" });
     }
 
-    // Check for user
-    const user = await User.findOne({ phone }).select("+password");
+    // Check for user in all collections (User, Buyer, Farmer)
+    // 1. Check 'users' (Admin/Standard)
+    let user = await User.findOne({ phone }).select("+password");
+
+    // 2. Check 'buyers' if not found
+    if (!user) {
+      const Buyer = require("../models/buyer_model");
+      user = await Buyer.findOne({ phone }).select("+password");
+    }
+
+    // 3. Check 'farmers' if not found
+    if (!user) {
+      const Farmer = require("../models/farmer_model");
+      user = await Farmer.findOne({ phone }).select("+password");
+    }
 
     if (!user) {
       return res
