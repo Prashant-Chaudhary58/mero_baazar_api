@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 public/uploads/
+notes/
 
 
 # Environment variables
