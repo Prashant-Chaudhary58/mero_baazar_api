@@ -1,0 +1,32 @@
+# Backend Changes Log - Admin Feature Implementation
+
+## Overview
+Implemented Admin User Management API and enhanced User Profile updates significantly.
+
+## Key Changes
+1. **User Model Update**:
+   - Added `admin` to the `role` enum in `models/user_model.js`.
+
+2. **Middleware**:
+   - Created `middleware/admin_middleware.js` to protect admin-only routes.
+   - Used `middleware/upload.js` (Multer) for image uploads in user creation/updates.
+
+3. **Controllers**:
+   - Created `controllers/admin_controller.js`:
+     - `getUsers`: Fetches both Buyers and Farmers.
+     - `createUser`: Creates user with image upload support.
+     - `getUser`: fetches single user from either collection.
+     - `updateUser`: Updates user details and image.
+     - `deleteUser`: Deletes user.
+   - Updated `controllers/auth_controller.js`:
+     - Ensured `updateDetails` handles image updates.
+
+4. **Routes**:
+   - Created `routes/admin_route.js` linked to `/api/admin`.
+   - Updated `routes/auth_route.js` to expose `PUT /:id` for easier profile updates matching REST patterns.
+
+5. **Server**:
+   - Registered `/api/admin` route in `server.js`.
+
+## Dependencies
+- No new dependencies added (used existing `multer`, `bcryptjs`, etc.).
