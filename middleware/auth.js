@@ -26,20 +26,9 @@ exports.protect = async (req, res, next) => {
 
     console.log(decoded);
 
-    const { Buyer, Farmer } = require("../models/user_model");
+    const { User } = require("../models/user_model");
 
-    // If role is in token, use specific model
-    if (decoded.role) {
-      const Model = decoded.role === "seller" ? Farmer : Buyer;
-      req.user = await Model.findById(decoded.id);
-    } else {
-      // Fallback: Check both collections if role is missing (old tokens)
-      let user = await Buyer.findById(decoded.id);
-      if (!user) {
-        user = await Farmer.findById(decoded.id);
-      }
-      req.user = user;
-    }
+    req.user = await User.findById(decoded.id);
 
     if (!req.user) {
       return res.status(401).json({ success: false, error: "Not authorized to access this route" });

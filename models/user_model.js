@@ -38,7 +38,21 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  location: {
+    type: {
+      type: String, 
+      enum: ['Point'], 
+      default: 'Point'
+    },
+    coordinates: {
+      type: [Number],
+      default: [0, 0] // [longitude, latitude]
+    }
+  }
 });
+
+// Create geospatial index for radius queries
+UserSchema.index({ location: "2dsphere" });
 
 // Encrypt password using bcrypt
 UserSchema.pre("save", async function (next) {
@@ -63,7 +77,8 @@ UserSchema.methods.matchPassword = async function (enteredPassword) {
 };
 
 // Create separate models for different collections
+const User = mongoose.model("User", UserSchema, "users");
 const Buyer = mongoose.model("Buyer", UserSchema, "buyers");
 const Farmer = mongoose.model("Farmer", UserSchema, "farmers");
 
-module.exports = { Buyer, Farmer };
+module.exports = { User, Buyer, Farmer };
