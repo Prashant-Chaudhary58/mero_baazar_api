@@ -120,6 +120,7 @@ exports.getMe = async (req, res) => {
 // @access  Private
 exports.updateDetails = async (req, res, next) => {
   try {
+    console.log("UpdateDetails req.body:", req.body);
     const fieldsToUpdate = {
       fullName: req.body.fullName,
       email: req.body.email,
