@@ -117,9 +117,77 @@ const sendTokenResponse = (user, statusCode, res) => {
     token,
     data: user,
   });
+};
 
-  exports.logout = (req, res) => {
-    res.cookie("token", "", { httpOnly: true, expires: new Date(0) });
-    res.status(200).json({ success: true });
-  };
+// @desc    Log user out / clear cookie
+// @route   GET /api/v1/auth/logout
+// @access  Private
+exports.logout = (req, res) => {
+  res.cookie("token", "", { httpOnly: true, expires: new Date(0) });
+  res.status(200).json({ success: true });
+};
+
+// @desc    Get current logged in user
+// @route   GET /api/v1/auth/me
+// @access  Private
+exports.getMe = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
+  } catch (err) {
+      // If user not found in User, try others since req.user is already set by protect middleware
+      // But actually protect middleware sets req.user to the full user object.
+      // So we can just return req.user
+      res.status(200).json({
+          success: true,
+          data: req.user
+      });
+  }
+};
+
+// @desc    Update user details
+// @route   PUT /api/v1/auth/:id
+// @access  Private
+exports.updateDetails = async (req, res, next) => {
+  try {
+    const fieldsToUpdate = {
+      fullName: req.body.fullName,
+      address: req.body.address,
+      city: req.body.city,
+      district: req.body.district,
+      province: req.body.province,
+    };
+
+    if (req.file) {
+      fieldsToUpdate.image = req.file.filename;
+    }
+
+    let user = req.user;
+
+    // Determine model based on role
+    let Model;
+    if (user.role === "buyer") {
+      Model = require("../models/buyer_model");
+    } else if (user.role === "seller") {
+      Model = require("../models/farmer_model");
+    } else {
+      Model = User;
+    }
+
+    user = await Model.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
+      new: true,
+      runValidators: true,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
 };
