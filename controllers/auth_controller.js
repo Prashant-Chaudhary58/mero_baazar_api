@@ -103,6 +103,8 @@ exports.getMe = async (req, res) => {
     // req.user is already populated by middleware (likely from User model now)
     const user = await User.findById(req.user.id);
 
+    console.log("getMe User:", user); // Debugging isAdmin flag
+
     res.status(200).json({
       success: true,
       data: user,
