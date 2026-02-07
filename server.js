@@ -62,6 +62,7 @@ app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/products", productRoutes);
+app.use("/api/admin", require("./routes/admin_route"));
 
 const PORT = process.env.PORT || 5000;
 
