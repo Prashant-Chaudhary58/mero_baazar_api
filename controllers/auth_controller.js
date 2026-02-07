@@ -1,4 +1,4 @@
-const { Buyer, Farmer } = require("../models/user_model");
+const { User, Buyer, Farmer } = require("../models/user_model");
 
 // Helper to get model based on role
 const getModelByRole = (role) => {
@@ -13,18 +13,39 @@ exports.register = async (req, res, next) => {
     const { fullName, phone, password, role } = req.body;
     console.log("Register request received:", req.body);
 
-    const Model = getModelByRole(role);
+    const userRole = role || "buyer";
+    const RoleModel = getModelByRole(userRole);
 
-    // Create user
-    const user = await Model.create({
+    // 1. Create in master User collection
+    const mainUser = await User.create({
       fullName,
       phone,
       password,
-      role: role || "buyer",
+      role: userRole,
     });
 
-    sendTokenResponse(user, 201, res);
+    // 2. Create in Role-specific collection (shadow copy)
+    // We can use the same ID if we want consistency, or let Mongo generate unique ones. 
+    // Usually easier to let them diverge IDs OR manually set _id. 
+    // For simplicity, let's just create them. If we want them linked, we might store the same ID.
+    // However, saving with exact same _id requires simpler handling. 
+    // Let's just create. The auth will now rely on 'User' mostly.
+    
+    // To keep them in sync on updates, we'll search by unique 'phone' or '_id'.
+    // NOTE: If we want to use the same _id, we need to explicitly set it.
+    await RoleModel.create({
+      _id: mainUser._id, // Keep IDs legitimate across collections
+      fullName,
+      phone,
+      password,
+      role: userRole,
+    });
+
+    sendTokenResponse(mainUser, 201, res);
   } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json({ success: false, error: "Phone number already exists" });
+    }
     res.status(400).json({ success: false, error: err.message });
   }
 };
@@ -42,11 +63,8 @@ exports.login = async (req, res, next) => {
         .json({ success: false, error: "Please provide phone and password" });
     }
 
-    // Check both collections
-    let user = await Buyer.findOne({ phone }).select("+password");
-    if (!user) {
-      user = await Farmer.findOne({ phone }).select("+password");
-    }
+    // Check main Users collection
+    const user = await User.findOne({ phone }).select("+password");
 
     if (!user) {
       return res
@@ -82,8 +100,10 @@ exports.logout = (req, res) => {
 // @access  Private
 exports.getMe = async (req, res) => {
   try {
-    const Model = getModelByRole(req.user.role);
-    const user = await Model.findById(req.user.id);
+    // req.user is already populated by middleware (likely from User model now)
+    const user = await User.findById(req.user.id);
+
+    console.log("getMe User:", user); // Debugging isAdmin flag
 
     res.status(200).json({
       success: true,
@@ -102,6 +122,7 @@ exports.getMe = async (req, res) => {
 // @access  Private
 exports.updateDetails = async (req, res, next) => {
   try {
+    console.log("UpdateDetails req.body:", req.body);
     const fieldsToUpdate = {
       fullName: req.body.fullName,
       email: req.body.email,
@@ -113,14 +134,32 @@ exports.updateDetails = async (req, res, next) => {
       altPhone: req.body.altPhone,
     };
 
+    // Construct GeoJSON location if lat/lng are provided
+    if (req.body.lat && req.body.lng) {
+      fieldsToUpdate.location = {
+        type: 'Point',
+        coordinates: [parseFloat(req.body.lng), parseFloat(req.body.lat)] // [Longitude, Latitude]
+      };
+    }
+
     if (req.file) {
       fieldsToUpdate.image = req.file.filename;
     }
 
-    // We use the role from the token (req.user.role) to know which collection to update
-    const Model = getModelByRole(req.user.role);
+    // 1. Update Main User
+    const user = await User.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
+      new: true,
+      runValidators: true,
+    });
 
-    const user = await Model.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
+    if (!user) {
+        return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    // 2. Update Role Shadow Copy
+    // We rely on the fact that we created them with the same _id during register.
+    const RoleModel = getModelByRole(user.role);
+    await RoleModel.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
       new: true,
       runValidators: true,
     });

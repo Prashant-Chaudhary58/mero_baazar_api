@@ -1,4 +1,5 @@
 const { Buyer, Farmer } = require("../models/user_model");
+const Product = require("../models/product_model");
 const asyncHandler = require("../middleware/async");
 const bcrypt = require("bcryptjs");
 
@@ -147,5 +148,39 @@ exports.deleteUser = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     success: true,
     data: {},
+  });
+});
+
+// @desc    Get all pending products
+// @route   GET /api/admin/products/pending
+// @access  Private/Admin
+exports.getPendingProducts = asyncHandler(async (req, res, next) => {
+  const products = await Product.find({ isVerified: false }).populate("seller", "fullName phone");
+
+  res.status(200).json({
+    success: true,
+    count: products.length,
+    data: products,
+  });
+});
+
+// @desc    Verify a product
+// @route   PUT /api/admin/products/:id/verify
+// @access  Private/Admin
+exports.verifyProduct = asyncHandler(async (req, res, next) => {
+  let product = await Product.findById(req.params.id);
+
+  if (!product) {
+    return res.status(404).json({ success: false, error: "Product not found" });
+  }
+
+  product = await Product.findByIdAndUpdate(req.params.id, { isVerified: true }, {
+    new: true,
+    runValidators: true
+  });
+
+  res.status(200).json({
+    success: true,
+    data: product,
   });
 });

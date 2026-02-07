@@ -5,6 +5,8 @@ const {
   createUser,
   updateUser,
   deleteUser,
+  getPendingProducts,
+  verifyProduct,
 } = require("../controllers/admin_controller");
 
 const router = express.Router();
@@ -26,5 +28,8 @@ router
   .get(getUser)
   .put(upload.single("image"), updateUser)
   .delete(deleteUser);
+
+router.get("/products/pending", getPendingProducts);
+router.put("/products/:id/verify", verifyProduct);
 
 module.exports = router;

@@ -23,6 +23,10 @@ const UserSchema = new mongoose.Schema({
     enum: ["buyer", "seller", "admin"],
     default: "buyer",
   },
+  isAdmin: {
+    type: Boolean,
+    default: false,
+  },
   image: {
     type: String,
     default: "no-photo.jpg",
@@ -38,7 +42,21 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  location: {
+    type: {
+      type: String, 
+      enum: ['Point'], 
+      default: 'Point'
+    },
+    coordinates: {
+      type: [Number],
+      default: [0, 0] // [longitude, latitude]
+    }
+  }
 });
+
+// Create geospatial index for radius queries
+UserSchema.index({ location: "2dsphere" });
 
 // Encrypt password using bcrypt
 UserSchema.pre("save", async function (next) {
@@ -52,7 +70,7 @@ UserSchema.pre("save", async function (next) {
 
 // Sign JWT and return
 UserSchema.methods.getSignedJwtToken = function () {
-  return jwt.sign({ id: this._id, role: this.role }, process.env.JWT_SECRET, {
+  return jwt.sign({ id: this._id, role: this.role, isAdmin: this.isAdmin }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
 };
@@ -63,7 +81,8 @@ UserSchema.methods.matchPassword = async function (enteredPassword) {
 };
 
 // Create separate models for different collections
+const User = mongoose.model("User", UserSchema, "users");
 const Buyer = mongoose.model("Buyer", UserSchema, "buyers");
 const Farmer = mongoose.model("Farmer", UserSchema, "farmers");
 
-module.exports = { Buyer, Farmer };
+module.exports = { User, Buyer, Farmer };
