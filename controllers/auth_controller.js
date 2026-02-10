@@ -8,34 +8,70 @@ const User = require("../models/user_model");
 // @access  Public
 exports.register = async (req, res, next) => {
   try {
-    const { fullName, phone, password, role } = req.body;
+    const {
+      fullName,
+      phone,
+      password,
+      role,
+      address,
+      city,
+      district,
+      province,
+      lat,
+      lng,
+      email,
+      dob,
+      altPhone,
+    } = req.body;
     console.log("Register request received:", req.body);
 
-    let user;
+    // 1. Always create in User collection (Central Registry)
+    const user = await User.create({
+      fullName,
+      phone,
+      password,
+      role,
+      address,
+      city,
+      district,
+      province,
+      lat,
+      lng,
+      email,
+      dob,
+      altPhone,
+    });
 
+    // 2. Also create in specific collection (Legacy Support)
     if (role === "buyer") {
       const Buyer = require("../models/buyer_model");
-      user = await Buyer.create({
+      await Buyer.create({
+        _id: user.id, // Keep IDs synced if possible, or just let it generate new
         fullName,
         phone,
         password,
         role,
+        address,
+        city,
+        district,
+        province,
+        lat,
+        lng,
       });
     } else if (role === "seller") {
       const Farmer = require("../models/farmer_model");
-      user = await Farmer.create({
+      await Farmer.create({
+        _id: user.id, // Sync ID for easier linking
         fullName,
         phone,
         password,
-        role: "seller", // Ensure role is correctly set
-      });
-    } else {
-      // Default to User (or Admin if needed later)
-      user = await User.create({
-        fullName,
-        phone,
-        password,
-        role,
+        role: "seller",
+        address,
+        city,
+        district,
+        province,
+        lat,
+        lng,
       });
     }
 
@@ -139,13 +175,13 @@ exports.getMe = async (req, res, next) => {
       data: user,
     });
   } catch (err) {
-      // If user not found in User, try others since req.user is already set by protect middleware
-      // But actually protect middleware sets req.user to the full user object.
-      // So we can just return req.user
-      res.status(200).json({
-          success: true,
-          data: req.user
-      });
+    // If user not found in User, try others since req.user is already set by protect middleware
+    // But actually protect middleware sets req.user to the full user object.
+    // So we can just return req.user
+    res.status(200).json({
+      success: true,
+      data: req.user,
+    });
   }
 };
 
@@ -160,28 +196,41 @@ exports.updateDetails = async (req, res, next) => {
       city: req.body.city,
       district: req.body.district,
       province: req.body.province,
+      email: req.body.email,
+      dob: req.body.dob,
+      altPhone: req.body.altPhone,
+      lat: req.body.lat,
+      lng: req.body.lng,
     };
 
     if (req.file) {
       fieldsToUpdate.image = req.file.filename;
     }
 
-    let user = req.user;
-
-    // Determine model based on role
-    let Model;
-    if (user.role === "buyer") {
-      Model = require("../models/buyer_model");
-    } else if (user.role === "seller") {
-      Model = require("../models/farmer_model");
-    } else {
-      Model = User;
-    }
-
-    user = await Model.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
+    // 1. Always update User collection
+    const user = await User.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
       new: true,
       runValidators: true,
     });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    // 2. Also update specific collection (Legacy Support)
+    if (user.role === "buyer") {
+      const Buyer = require("../models/buyer_model");
+      await Buyer.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
+        new: true,
+        runValidators: true,
+      });
+    } else if (user.role === "seller") {
+      const Farmer = require("../models/farmer_model");
+      await Farmer.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
+        new: true,
+        runValidators: true,
+      });
+    }
 
     res.status(200).json({
       success: true,

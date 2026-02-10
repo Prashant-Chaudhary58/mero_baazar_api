@@ -24,26 +24,18 @@ exports.protect = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     console.log("Decoded Token:", decoded);
 
-    // Check user based on role in token, or fallback to checking all
-    if (decoded.role === "buyer") {
-      const Buyer = require("../models/buyer_model");
-      req.user = await Buyer.findById(decoded.id);
-    } else if (decoded.role === "seller") {
-      const Farmer = require("../models/farmer_model");
-      req.user = await Farmer.findById(decoded.id);
-    } else {
-      // Default or Admin
-      req.user = await User.findById(decoded.id);
-      
-      // Fallback: If not found in User, try others (for old tokens without role)
-      if (!req.user) {
-         const Buyer = require("../models/buyer_model");
-         req.user = await Buyer.findById(decoded.id);
-      }
-      if (!req.user) {
-         const Farmer = require("../models/farmer_model");
-         req.user = await Farmer.findById(decoded.id);
-      }
+    // Always try to fetch from User model first (Unified System)
+    req.user = await User.findById(decoded.id);
+
+    // Backwards Compatibility: If not in User, check legacy collections
+    if (!req.user) {
+        if (decoded.role === "buyer") {
+          const Buyer = require("../models/buyer_model");
+          req.user = await Buyer.findById(decoded.id);
+        } else if (decoded.role === "seller") {
+          const Farmer = require("../models/farmer_model");
+          req.user = await Farmer.findById(decoded.id);
+        }
     }
 
     if (!req.user) {
@@ -60,7 +52,8 @@ exports.protect = async (req, res, next) => {
 // Grant access to specific roles
 exports.authorize = (...roles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
+    // Check if user has role or is explicitly an admin
+    if (!roles.includes(req.user.role) && !req.user.isAdmin) {
       return res.status(403).json({
         success: false,
         error: `User role ${req.user.role} is not authorized to access this route`,

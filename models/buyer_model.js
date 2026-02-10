@@ -31,9 +31,15 @@ const BuyerSchema = new mongoose.Schema({
   city: String,
   district: String,
   province: String,
+  lat: String,
+  lng: String,
   createdAt: {
     type: Date,
     default: Date.now,
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -48,7 +54,7 @@ BuyerSchema.pre("save", async function (next) {
 
 // Sign JWT and return
 BuyerSchema.methods.getSignedJwtToken = function () {
-  return jwt.sign({ id: this._id, role: this.role }, process.env.JWT_SECRET, {
+  return jwt.sign({ id: this._id, role: this.role, isAdmin: this.isAdmin }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
 };

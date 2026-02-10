@@ -3,12 +3,15 @@ const {
   getAllProducts,
   getProduct,
   createProduct,
+  getSellerProducts,
 } = require("../controllers/product_controller");
 
 const { protect, authorize } = require("../middleware/auth");
 const upload = require("../middleware/upload");
 
 const router = express.Router();
+
+router.get("/my-products", protect, authorize("seller"), getSellerProducts);
 
 router
   .route("/")

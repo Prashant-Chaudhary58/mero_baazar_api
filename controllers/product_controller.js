@@ -5,7 +5,7 @@ const Product = require("../models/product_model");
 // @access  Public
 exports.getAllProducts = async (req, res, next) => {
   try {
-    const products = await Product.find().populate('seller', 'fullName phone address');
+    const products = await Product.find({ isVerified: true }).populate('seller', 'fullName phone address lat lng');
 
     res.status(200).json({
       success: true,
@@ -22,7 +22,7 @@ exports.getAllProducts = async (req, res, next) => {
 // @access  Public
 exports.getProduct = async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id).populate('seller', 'fullName phone address');
+    const product = await Product.findById(req.params.id).populate('seller', 'fullName phone address lat lng');
 
     if (!product) {
       return res.status(404).json({ success: false, error: "Product not found" });
@@ -59,4 +59,21 @@ exports.createProduct = async (req, res, next) => {
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });
   }
+};
+
+// @desc    Get logged in seller's products
+// @route   GET /api/v1/products/my-products
+// @access  Private (Seller)
+exports.getSellerProducts = async (req, res, next) => {
+    try {
+        const products = await Product.find({ seller: req.user.id });
+
+        res.status(200).json({
+            success: true,
+            count: products.length,
+            data: products,
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
 };

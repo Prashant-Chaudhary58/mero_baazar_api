@@ -28,6 +28,10 @@ const ProductSchema = new mongoose.Schema({
     type: String,
     default: "no-photo.jpg",
   },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
   seller: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
@@ -36,6 +40,16 @@ const ProductSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
+  },
+  averageRating: {
+    type: Number,
+    min: [1, "Rating must be at least 1"],
+    max: [5, "Rating must can not be more than 5"],
+    default: 0
+  },
+  numOfReviews: {
+    type: Number,
+    default: 0,
   },
 });
 

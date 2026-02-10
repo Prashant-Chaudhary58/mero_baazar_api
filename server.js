@@ -1,5 +1,6 @@
 const express = require("express");
 const dotenv = require("dotenv");
+const path = require("path");
 const morgan = require("morgan");
 const colors = require("colors");
 const connectDB = require("./config/db");
@@ -34,7 +35,7 @@ app.use(cors({
 const authRoutes = require("./routes/auth_route");
 const productRoutes = require("./routes/product_route");
 
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/auth", authRoutes);

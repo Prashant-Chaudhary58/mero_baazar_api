@@ -1,4 +1,5 @@
 const User = require("../models/user_model");
+const Product = require("../models/product_model");
 const bcrypt = require("bcryptjs"); // Ensure bcryptjs is installed or reused from user_model logic if possible, but better to use model methods
 const fs = require("fs");
 const path = require("path");
@@ -145,4 +146,56 @@ exports.deleteUser = async (req, res) => {
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });
   }
+};
+
+// @desc    Get all pending products
+// @route   GET /api/admin/products/pending
+// @access  Admin
+exports.getPendingProducts = async (req, res) => {
+    try {
+        const products = await Product.find({ isVerified: false }).populate("seller", "fullName phone");
+        res.status(200).json({ success: true, count: products.length, data: products });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+};
+
+// @desc    Verify a product
+// @route   PUT /api/admin/products/:id/verify
+// @access  Admin
+exports.verifyProduct = async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+
+        if (!product) {
+            return res.status(404).json({ success: false, error: "Product not found" });
+        }
+
+        product.isVerified = true;
+        await product.save();
+
+        res.status(200).json({ success: true, data: product });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+};
+
+// @desc    Get system stats
+// @route   GET /api/admin/stats
+// @access  Admin
+exports.getSystemStats = async (req, res) => {
+    try {
+        const totalUsers = await User.countDocuments();
+        const pendingProducts = await Product.countDocuments({ isVerified: false });
+        
+        res.status(200).json({
+            success: true,
+            data: {
+                totalUsers,
+                pendingProducts
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
 };

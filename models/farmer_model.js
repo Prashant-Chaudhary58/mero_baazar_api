@@ -31,9 +31,15 @@ const FarmerSchema = new mongoose.Schema({
   city: String,
   district: String,
   province: String,
+  lat: String,
+  lng: String,
   createdAt: {
     type: Date,
     default: Date.now,
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -49,7 +55,7 @@ FarmerSchema.pre("save", async function (next) {
 // Sign JWT and return
 FarmerSchema.methods.getSignedJwtToken = function () {
   // IMPORTANT: Role is 'seller' for farmers
-  return jwt.sign({ id: this._id, role: 'seller' }, process.env.JWT_SECRET, {
+  return jwt.sign({ id: this._id, role: 'seller', isAdmin: this.isAdmin }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
 };

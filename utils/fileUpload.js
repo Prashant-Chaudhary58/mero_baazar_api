@@ -11,7 +11,11 @@ if (!fs.existsSync(uploadDir)) {
 // Set storage engine
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, uploadDir);
+    const dir = "./public/uploads/users/";
+    if (!fs.existsSync(dir)){
+        fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir);
   },
   filename: function (req, file, cb) {
     // Generate unique filename: fieldname-timestamp.ext
