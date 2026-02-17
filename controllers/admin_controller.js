@@ -64,6 +64,37 @@ exports.createUser = async (req, res) => {
       province
     });
 
+    // 2. Also create in specific collection (Legacy Support)
+    if (role === "buyer") {
+      const Buyer = require("../models/buyer_model");
+      await Buyer.create({
+        _id: user.id, // Synced ID
+        fullName,
+        phone,
+        password,
+        role,
+        image,
+        address,
+        city,
+        district,
+        province
+      });
+    } else if (role === "seller") {
+      const Farmer = require("../models/farmer_model");
+      await Farmer.create({
+        _id: user.id, // Synced ID
+        fullName,
+        phone,
+        password,
+        role: "seller",
+        image,
+        address,
+        city,
+        district,
+        province
+      });
+    }
+
     res.status(201).json({ success: true, data: user });
   } catch (err) {
     console.error(err);
@@ -76,6 +107,10 @@ exports.createUser = async (req, res) => {
 // @access  Admin
 exports.updateUser = async (req, res) => {
   try {
+    console.log("UPDATE USER REQUEST");
+    console.log("Body:", req.body);
+    console.log("File:", req.file);
+
     let user = await User.findById(req.params.id);
 
     if (!user) {
@@ -83,12 +118,14 @@ exports.updateUser = async (req, res) => {
     }
 
     const fieldsToUpdate = { ...req.body };
+    // Prevent manual manipulation of image field or accidental object injection
+    if (fieldsToUpdate.image) delete fieldsToUpdate.image;
 
     // Handle Image Update
     if (req.file) {
         // Optional: Delete old image if it's not default
         if (user.image && user.image !== "no-photo.jpg") {
-            const oldImagePath = path.join(__dirname, "../public/uploads", user.image);
+            const oldImagePath = path.join(__dirname, "../public/uploads/users", user.image);
             if (fs.existsSync(oldImagePath)) {
                 fs.unlinkSync(oldImagePath);
             }
@@ -110,6 +147,21 @@ exports.updateUser = async (req, res) => {
       runValidators: true,
     });
 
+    // 2. Also update specific collection (Legacy Support)
+    if (user.role === "buyer") {
+      const Buyer = require("../models/buyer_model");
+      await Buyer.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
+        new: true,
+        runValidators: true,
+      });
+    } else if (user.role === "seller") {
+      const Farmer = require("../models/farmer_model");
+      await Farmer.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
+        new: true,
+        runValidators: true,
+      });
+    }
+
     res.status(200).json({ success: true, data: user });
   } catch (err) {
     console.error(err);
@@ -130,7 +182,7 @@ exports.deleteUser = async (req, res) => {
 
     // Optional: Delete image file
     if (user.image && user.image !== "no-photo.jpg") {
-        const imagePath = path.join(__dirname, "../public/uploads", user.image);
+        const imagePath = path.join(__dirname, "../public/uploads/users", user.image);
         if (fs.existsSync(imagePath)) {
             try {
                 fs.unlinkSync(imagePath);
@@ -141,6 +193,15 @@ exports.deleteUser = async (req, res) => {
     }
 
     await user.deleteOne();
+
+    // 2. Also delete from legacy collections
+    if (user.role === "buyer") {
+      const Buyer = require("../models/buyer_model");
+      await Buyer.findByIdAndDelete(req.params.id);
+    } else if (user.role === "seller") {
+      const Farmer = require("../models/farmer_model");
+      await Farmer.findByIdAndDelete(req.params.id);
+    }
 
     res.status(200).json({ success: true, data: {} });
   } catch (err) {

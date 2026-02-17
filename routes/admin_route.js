@@ -28,7 +28,7 @@ router
   .route("/users/:id")
   .get(getUser)
   .put(upload.single("image"), updateUser)
-  .put(upload.single("image"), updateUser)
+
   .delete(deleteUser);
 
 router.get("/products/pending", getPendingProducts);
