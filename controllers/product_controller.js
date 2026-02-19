@@ -72,6 +72,53 @@ exports.createProduct = async (req, res, next) => {
   }
 };
 
+// @desc    Update product
+// @route   PUT /api/v1/products/:id
+// @access  Private (Seller/Admin)
+exports.updateProduct = async (req, res, next) => {
+    try {
+        let product = await Product.findById(req.params.id);
+
+        if (!product) {
+            return res.status(404).json({ success: false, error: 'Product not found' });
+        }
+
+        // Make sure user is product owner or admin
+        if (product.seller.toString() !== req.user.id && req.user.role !== 'admin' && !req.user.isAdmin) {
+             return res.status(401).json({ success: false, error: 'Not authorized to update this product' });
+        }
+
+        let fieldsToUpdate = { ...req.body };
+
+        // Handle file upload
+        if(req.file){
+            fieldsToUpdate.image = req.file.filename;
+            
+            // Optional: Delete old image
+            // const fs = require('fs');
+            // const path = require('path');
+            // if (product.image && product.image !== 'no-photo.jpg') {
+            //      // delete logic
+            // }
+        }
+
+        // Fix numbers
+        if (fieldsToUpdate.price) fieldsToUpdate.price = Number(fieldsToUpdate.price);
+        
+        product = await Product.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
+            new: true,
+            runValidators: true
+        });
+
+        res.status(200).json({
+            success: true,
+            data: product
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+};
+
 // @desc    Delete product
 // @route   DELETE /api/v1/products/:id
 // @access  Private (Seller/Admin)

@@ -38,7 +38,6 @@ const productRoutes = require("./routes/product_route");
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/users", require("./routes/user_route"));
 app.use("/api/admin", require("./routes/admin_route"));

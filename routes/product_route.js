@@ -5,6 +5,7 @@ const {
   createProduct,
   getSellerProducts,
   deleteProduct,
+  updateProduct,
 } = require("../controllers/product_controller");
 
 const { protect, authorize } = require("../middleware/auth");
@@ -22,6 +23,7 @@ router
 router
   .route("/:id")
   .get(getProduct)
+  .put(protect, authorize("seller", "admin"), upload.single("image"), updateProduct)
   .delete(protect, authorize("seller", "admin"), deleteProduct);
 
 module.exports = router;

@@ -16,6 +16,18 @@ exports.getUsers = async (req, res) => {
   }
 };
 
+// @desc    Get all products (Admin)
+// @route   GET /api/admin/products
+// @access  Admin
+exports.getAllAdminProducts = async (req, res) => {
+  try {
+    const products = await Product.find().populate("seller", "fullName phone");
+    res.status(200).json({ success: true, count: products.length, data: products });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
 // @desc    Get single user
 // @route   GET /api/admin/users/:id
 // @access  Admin

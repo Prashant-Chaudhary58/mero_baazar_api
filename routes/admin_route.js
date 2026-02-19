@@ -7,7 +7,8 @@ const {
   deleteUser,
   getPendingProducts,
   verifyProduct,
-  getSystemStats
+  getSystemStats,
+  getAllAdminProducts
 } = require("../controllers/admin_controller");
 
 const router = express.Router();
@@ -32,6 +33,7 @@ router
   .delete(deleteUser);
 
 router.get("/products/pending", getPendingProducts);
+router.get("/products", getAllAdminProducts);
 router.put("/products/:id/verify", verifyProduct);
 router.get("/stats", getSystemStats);
 
