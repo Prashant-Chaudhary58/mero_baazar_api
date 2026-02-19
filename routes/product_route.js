@@ -13,6 +13,12 @@ const upload = require("../middleware/upload");
 
 const router = express.Router();
 
+// Include other resource routers
+const reviewRouter = require("./review_route");
+
+// Re-route into other resource routers
+router.use("/:productId/reviews", reviewRouter);
+
 router.get("/my-products", protect, authorize("seller"), getSellerProducts);
 
 router

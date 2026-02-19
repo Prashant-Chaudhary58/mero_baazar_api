@@ -40,6 +40,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/users", require("./routes/user_route"));
+app.use("/api/v1/reviews", require("./routes/review_route"));
 app.use("/api/admin", require("./routes/admin_route"));
 
 // Global Error Handler

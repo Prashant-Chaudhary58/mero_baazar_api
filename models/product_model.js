@@ -51,6 +51,17 @@ const ProductSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+}, {
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
+// Calculate Average Rating
+ProductSchema.virtual("reviews", {
+  ref: "Review",
+  localField: "_id",
+  foreignField: "product",
+  justOne: false,
 });
 
 module.exports = mongoose.model("Product", ProductSchema);

@@ -22,7 +22,16 @@ exports.getAllProducts = async (req, res, next) => {
 // @access  Public
 exports.getProduct = async (req, res, next) => {
   try {
-    const product = await Product.findById(req.params.id).populate('seller', 'fullName phone address lat lng');
+    const product = await Product.findById(req.params.id)
+        .populate('seller', 'fullName phone address lat lng')
+        .populate({
+            path: 'reviews',
+            options: { sort: { createdAt: -1 } },
+            populate: {
+                path: 'user',
+                select: 'fullName image' // Added image just in case
+            }
+        });
 
     if (!product) {
       return res.status(404).json({ success: false, error: "Product not found" });
