@@ -41,6 +41,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/users", require("./routes/user_route"));
 app.use("/api/v1/reviews", require("./routes/review_route"));
+app.use("/api/v1/chats", require("./routes/chat_route"));
 app.use("/api/admin", require("./routes/admin_route"));
 
 // Global Error Handler
@@ -60,6 +61,51 @@ const server = app.listen(
     `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold
   )
 );
+
+// Socket.io Setup
+const io = require("socket.io")(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+    credentials: true
+  },
+});
+
+let onlineUsers = [];
+
+io.on("connection", (socket) => {
+  console.log("New Connection", socket.id);
+
+  socket.on("addNewUser", (userId) => {
+    !onlineUsers.some((user) => user.userId === userId) &&
+      onlineUsers.push({
+        userId,
+        socketId: socket.id,
+      });
+    console.log("Online Users", onlineUsers);
+    io.emit("getOnlineUsers", onlineUsers);
+  });
+
+  socket.on("sendMessage", (message) => {
+    const user = onlineUsers.find(
+      (user) => user.userId === message.recipientId
+    );
+
+    if (user) {
+      io.to(user.socketId).emit("getMessage", message);
+      io.to(user.socketId).emit("getNotification", {
+          senderId: message.senderId,
+          isRead: false,
+          date: new Date(),
+      });
+    }
+  });
+
+  socket.on("disconnect", () => {
+    onlineUsers = onlineUsers.filter((user) => user.socketId !== socket.id);
+    io.emit("getOnlineUsers", onlineUsers);
+  });
+});
 
 // Handle unhandled promise rejections
 process.on("unhandledRejection", (err, promise) => {
