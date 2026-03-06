@@ -1,0 +1,120 @@
+﻿
+> mero_baazar_api@1.0.0 test
+> cross-env NODE_ENV=test jest --runInBand --detectOpenHandles --forceExit tests/users.test.js
+
+  console.log
+    [dotenv@17.2.3] injecting env (5) from config\config.env -- tip: ≡ƒöÉ prevent committing .env to code: https://dotenvx.com/precommit
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+  console.error
+    TypeError: next is not a function
+        at model.next (C:\Users\LENOVO\Documents\developer\Flutter\mero_baazar_api\models\user_model.js:51:12)
+        at Kareem.execPre (C:\Users\LENOVO\Documents\developer\Flutter\mero_baazar_api\node_modules\kareem\index.js:63:39)
+        at processTicksAndRejections (node:internal/process/task_queues:103:5)
+        at model.$__save (C:\Users\LENOVO\Documents\developer\Flutter\mero_baazar_api\node_modules\mongoose\lib\model.js:369:5)
+        at model.save (C:\Users\LENOVO\Documents\developer\Flutter\mero_baazar_api\node_modules\mongoose\lib\model.js:609:5)
+        at exports.updateUserDetails (C:\Users\LENOVO\Documents\developer\Flutter\mero_baazar_api\controllers\user_controller.js:35:25)
+
+    [0m [90m 40 |[39m     })[33m;[39m
+     [90m 41 |[39m   } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m 42 |[39m     console[33m.[39merror(err)[33m;[39m
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 43 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({
+     [90m 44 |[39m       success[33m:[39m [36mfalse[39m[33m,[39m
+     [90m 45 |[39m       error[33m:[39m [32m"Server Error"[39m[33m,[39m[0m
+
+      at error (controllers/user_controller.js:42:13)
+
+  console.error
+    TypeError: next is not a function
+        at model.next (C:\Users\LENOVO\Documents\developer\Flutter\mero_baazar_api\models\user_model.js:51:12)
+        at Kareem.execPre (C:\Users\LENOVO\Documents\developer\Flutter\mero_baazar_api\node_modules\kareem\index.js:63:39)
+        at processTicksAndRejections (node:internal/process/task_queues:103:5)
+        at model.$__save (C:\Users\LENOVO\Documents\developer\Flutter\mero_baazar_api\node_modules\mongoose\lib\model.js:369:5)
+        at model.save (C:\Users\LENOVO\Documents\developer\Flutter\mero_baazar_api\node_modules\mongoose\lib\model.js:609:5)
+        at exports.updateUserDetails (C:\Users\LENOVO\Documents\developer\Flutter\mero_baazar_api\controllers\user_controller.js:35:25)
+
+    [0m [90m 40 |[39m     })[33m;[39m
+     [90m 41 |[39m   } [36mcatch[39m (err) {
+    [31m[1m>[22m[39m[90m 42 |[39m     console[33m.[39merror(err)[33m;[39m
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 43 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({
+     [90m 44 |[39m       success[33m:[39m [36mfalse[39m[33m,[39m
+     [90m 45 |[39m       error[33m:[39m [32m"Server Error"[39m[33m,[39m[0m
+
+      at error (controllers/user_controller.js:42:13)
+
+node.exe : FAIL tests/users.test.js
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~
+    + CategoryInfo          : NotSpecified: (FAIL tests/users.test 
+   .js:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  User API Endpoints
+    PUT /api/v1/users/:id
+      ├ù should allow a user to update their own details (329 ms)
+      ΓêÜ should NOT allow a user to update another user's profile 
+(207 ms)
+      ΓêÜ should fail if no token is provided (188 ms)
+      ├ù should ignore attempts to update protected fields like 
+role or password directly via this route (198 ms)
+
+  ΓùÅ User API Endpoints ΓÇ║ PUT /api/v1/users/:id ΓÇ║ should 
+allow a user to update their own details
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 500
+
+    [0m [90m 53 |[39m                 })[33m;[39m
+     [90m 54 |[39m
+    [31m[1m>[22m[39m[90m 55 |[39m             expect(res[33m
+.[39mstatusCode)[33m.[39mtoBe([35m200[39m)[33m;[39m
+     [90m    |[39m                                    
+[31m[1m^[22m[39m
+     [90m 56 |[39m             expect(res[33m.[39mbody[33m.[3
+9msuccess)[33m.[39mtoBe([36mtrue[39m)[33m;[39m
+     [90m 57 |[39m             expect(res[33m.[39mbody[33m.[3
+9mdata[33m.[39mfullName)[33m.[39mtoBe([32m'Updated 
+Name'[39m)[33m;[39m
+     [90m 58 |[39m             expect(res[33m.[39mbody[33m.[3
+9mdata[33m.[39mcity)[33m.[39mtoBe([32m'Pokhara'[39m)[33m;[3
+9m[0m
+
+      at Object.toBe (tests/users.test.js:55:36)
+
+  ΓùÅ User API Endpoints ΓÇ║ PUT /api/v1/users/:id ΓÇ║ should 
+ignore attempts to update protected fields like role or password 
+directly via this route
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 500
+
+    [0m [90m 88 |[39m                 [33m.[39msend({ 
+role[33m:[39m [32m'admin'[39m })[33m;[39m
+     [90m 89 |[39m
+    [31m[1m>[22m[39m[90m 90 |[39m             expect(res[33m
+.[39mstatusCode)[33m.[39mtoBe([35m200[39m)[33m;[39m
+     [90m    |[39m                                    
+[31m[1m^[22m[39m
+     [90m 91 |[39m             expect(res[33m.[39mbody[33m.[3
+9mdata[33m.[39mrole)[33m.[39mtoBe([32m'buyer'[39m)[33m;[39m
+ [90m// Still a buyer[39m
+     [90m 92 |[39m         })[33m;[39m
+     [90m 93 |[39m     })[33m;[39m[0m
+
+      at Object.toBe (tests/users.test.js:90:36)
+
+Test Suites: 1 failed, 1 total
+Tests:       2 failed, 2 passed, 4 total
+Snapshots:   0 total
+Time:        2.708 s, estimated 3 s
+Ran all test suites matching tests/users.test.js.

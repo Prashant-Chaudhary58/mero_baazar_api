@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const asyncHandler = require("./async"); // I need to create async.js or just use try/catch
+const asyncHandler = require("./async"); 
 const User = require("../models/user_model");
 
 exports.protect = async (req, res, next) => {
